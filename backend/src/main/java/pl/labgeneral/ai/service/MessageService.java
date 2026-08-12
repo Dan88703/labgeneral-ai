@@ -1,46 +1,55 @@
 package pl.labgeneral.ai.service;
 
+import lombok.RequiredArgsConstructor;
 import pl.labgeneral.ai.dto.MessageRequest;
 import pl.labgeneral.ai.dto.MessageResponse;
 import pl.labgeneral.ai.entity.Conversation;
 import pl.labgeneral.ai.entity.Message;
+import pl.labgeneral.ai.entity.MessageRole;
 import pl.labgeneral.ai.repository.ConversationRepository;
 import pl.labgeneral.ai.repository.MessageRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class MessageService {
 
     private final MessageRepository messageRepository;
     private final ConversationRepository conversationRepository;
+    private final OpenAiService openAiService;
 
-    public MessageService(
-            MessageRepository messageRepository,
-            ConversationRepository conversationRepository
-    ) {
-        this.messageRepository = messageRepository;
-        this.conversationRepository = conversationRepository;
-    }
-
+    @Transactional
     public MessageResponse create(Long conversationId, MessageRequest request) {
 
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new RuntimeException("Conversation not found"));
 
-        Message message = new Message();
-        message.setContent(request.content());
-        message.setRole(request.role());
-        message.setConversation(conversation);
+        // 1. сохраняем USER message
+        Message userMessage = new Message();
+        userMessage.setContent(request.content());
+        userMessage.setRole(MessageRole.USER);
+        userMessage.setConversation(conversation);
+        messageRepository.save(userMessage);
 
-        Message saved = messageRepository.save(message);
+        // 2. берём всю историю (уже включая только что сохранённое сообщение)
+        List<Message> history = messageRepository
+                .findByConversationIdOrderByIdAsc(conversationId);
 
-        return new MessageResponse(
-                saved.getId(),
-                saved.getContent(),
-                saved.getRole()
-        );
+        // 3. зовём OpenAI
+        String aiAnswer = openAiService.askGpt(history);
+
+        // 4. сохраняем ASSISTANT message
+        Message assistantMessage = new Message();
+        assistantMessage.setContent(aiAnswer);
+        assistantMessage.setRole(MessageRole.ASSISTANT);
+        assistantMessage.setConversation(conversation);
+        Message saved = messageRepository.save(assistantMessage);
+
+        // 5. возвращаем именно ответ ассистента фронтенду
+        return new MessageResponse(saved.getId(), saved.getContent(), saved.getRole());
     }
 
     public List<MessageResponse> getByConversation(Long conversationId) {

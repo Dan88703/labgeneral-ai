@@ -1,4 +1,93 @@
 package pl.labgeneral.ai.service;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import pl.labgeneral.ai.entity.Message;
+import pl.labgeneral.ai.entity.MessageRole;
+import pl.labgeneral.ai.exception.OpenAiException;
+import reactor.core.publisher.Mono;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+
+@RequiredArgsConstructor
+@Service
 public class OpenAiService {
+
+    private final WebClient openAiWebClient;
+
+    @Value("${openai.model}")
+    private String model;
+
+
+    public String askGpt(List<Message> history) {
+        List<ChatMsg> messages = new ArrayList<>();
+        messages.add(new ChatMsg("system", buildSystemPrompt()));
+
+        for (Message m : history) {
+            String role = (m.getRole() == MessageRole.USER) ? "user" : "assistant";
+            messages.add(new ChatMsg(role, m.getContent()));
+        }
+
+        ChatRequest request = new ChatRequest(model, messages, 0.3);
+
+        try {
+            ChatResponse response = openAiWebClient.post()
+                    .uri("/chat/completions")
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError, this::handleClientError)
+                    .onStatus(HttpStatusCode::is5xxServerError,
+                            r -> Mono.error(new OpenAiException("OpenAI tymczasowo niedostępne")))
+                    .bodyToMono(ChatResponse.class)
+                    .timeout(Duration.ofSeconds(30))
+                    .block();
+
+            if (response == null || response.choices() == null || response.choices().isEmpty()) {
+                throw new OpenAiException("Pusta odpowiedź z OpenAI");
+            }
+            return response.choices().get(0).message().content();
+
+        } catch (WebClientResponseException e) {
+            e.printStackTrace(); // временно, для отладки
+            System.out.println("GROQ RESPONSE BODY: " + e.getResponseBodyAsString());
+            throw new OpenAiException("Błąd OpenAI: " + e.getStatusCode());
+        } catch (OpenAiException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace(); // временно, для отладки
+            throw new OpenAiException("Nieoczekiwany błąd podczas wywołania OpenAI: " + e.getMessage());
+        }
+    }
+
+    private Mono<? extends Throwable> handleClientError(ClientResponse response) {
+        return response.bodyToMono(String.class)
+                .flatMap(body -> Mono.error(new OpenAiException("Niepoprawne zapytanie do OpenAI: " + body)));
+    }
+
+    private String buildSystemPrompt() {
+        return """
+                Jesteś asystentem AI strony LABgeneral.pl.
+                Odpowiadaj WYŁĄCZNIE na podstawie dostarczonego kontekstu.
+                Jeśli nie znasz odpowiedzi, powiedz to wprost i zaproponuj kontakt: +48 570 800 890, zapisy@labgeneral.pl.
+                Odpowiadaj w języku pytania użytkownika.
+                """;
+    }
+
+    private record ChatMsg(String role, String content) {
+    }
+
+    private record ChatRequest(String model, List<ChatMsg> messages, Double temperature) {
+    }
+
+    private record ChatResponse(List<Choice> choices) {
+        record Choice(ChatMsg message) {
+        }
+    }
 }
