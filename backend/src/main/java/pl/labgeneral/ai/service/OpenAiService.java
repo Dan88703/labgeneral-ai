@@ -1,6 +1,5 @@
 package pl.labgeneral.ai.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -15,8 +14,8 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
 @Service
 public class OpenAiService {
 
@@ -25,10 +24,14 @@ public class OpenAiService {
     @Value("${openai.model}")
     private String model;
 
+    public OpenAiService(WebClient openAiWebClient) {
+        this.openAiWebClient = openAiWebClient;
+    }
 
-    public String askGpt(List<Message> history) {
+    // ДОБАВЛЕН второй параметр chunks
+    public String askGpt(List<Message> history, List<RetrievalService.RetrievedChunk> chunks) {
         List<ChatMsg> messages = new ArrayList<>();
-        messages.add(new ChatMsg("system", buildSystemPrompt()));
+        messages.add(new ChatMsg("system", buildSystemPrompt(chunks)));
 
         for (Message m : history) {
             String role = (m.getRole() == MessageRole.USER) ? "user" : "assistant";
@@ -55,13 +58,10 @@ public class OpenAiService {
             return response.choices().get(0).message().content();
 
         } catch (WebClientResponseException e) {
-            e.printStackTrace(); // временно, для отладки
-            System.out.println("GROQ RESPONSE BODY: " + e.getResponseBodyAsString());
             throw new OpenAiException("Błąd OpenAI: " + e.getStatusCode());
         } catch (OpenAiException e) {
             throw e;
         } catch (Exception e) {
-            e.printStackTrace(); // временно, для отладки
             throw new OpenAiException("Nieoczekiwany błąd podczas wywołania OpenAI: " + e.getMessage());
         }
     }
@@ -71,23 +71,26 @@ public class OpenAiService {
                 .flatMap(body -> Mono.error(new OpenAiException("Niepoprawne zapytanie do OpenAI: " + body)));
     }
 
-    private String buildSystemPrompt() {
+    // ОБНОВЛЁН: теперь принимает chunks и вставляет их в промпт
+    private String buildSystemPrompt(List<RetrievalService.RetrievedChunk> chunks) {
+        String context = chunks.stream()
+                .map(c -> "[" + c.section() + "] " + c.content())
+                .collect(Collectors.joining("\n\n"));
+
         return """
                 Jesteś asystentem AI strony LABgeneral.pl.
-                Odpowiadaj WYŁĄCZNIE na podstawie dostarczonego kontekstu.
-                Jeśli nie znasz odpowiedzi, powiedz to wprost i zaproponuj kontakt: +48 570 800 890, zapisy@labgeneral.pl.
+                Odpowiadaj WYŁĄCZNIE na podstawie poniższego kontekstu.
+                Jeśli odpowiedzi nie ma w kontekście, powiedz to wprost i zaproponuj kontakt: +48 570 800 890, zapisy@labgeneral.pl.
                 Odpowiadaj w języku pytania użytkownika.
-                """;
+
+                KONTEKST:
+                %s
+                """.formatted(context.isBlank() ? "(brak dopasowanych fragmentów)" : context);
     }
 
-    private record ChatMsg(String role, String content) {
-    }
-
-    private record ChatRequest(String model, List<ChatMsg> messages, Double temperature) {
-    }
-
+    private record ChatMsg(String role, String content) {}
+    private record ChatRequest(String model, List<ChatMsg> messages, Double temperature) {}
     private record ChatResponse(List<Choice> choices) {
-        record Choice(ChatMsg message) {
-        }
+        record Choice(ChatMsg message) {}
     }
 }

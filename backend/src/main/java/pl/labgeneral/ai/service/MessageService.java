@@ -20,6 +20,7 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ConversationRepository conversationRepository;
     private final OpenAiService openAiService;
+    private final RetrievalService retrievalService;
 
     @Transactional
     public MessageResponse create(Long conversationId, MessageRequest request) {
@@ -27,28 +28,26 @@ public class MessageService {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new RuntimeException("Conversation not found"));
 
-        // 1. сохраняем USER message
         Message userMessage = new Message();
         userMessage.setContent(request.content());
         userMessage.setRole(MessageRole.USER);
         userMessage.setConversation(conversation);
         messageRepository.save(userMessage);
 
-        // 2. берём всю историю (уже включая только что сохранённое сообщение)
-        List<Message> history = messageRepository
-                .findByConversationIdOrderByIdAsc(conversationId);
+        List<Message> history = messageRepository.findByConversationIdOrderByIdAsc(conversationId);
 
-        // 3. зовём OpenAI
-        String aiAnswer = openAiService.askGpt(history);
+        // NOWOŚĆ: pobieramy pasujące fragmenty wiedzy przed wywołaniem AI
+        List<RetrievalService.RetrievedChunk> chunks =
+                retrievalService.retrieveRelevantChunks(request.content(), 4);
 
-        // 4. сохраняем ASSISTANT message
+        String aiAnswer = openAiService.askGpt(history, chunks);
+
         Message assistantMessage = new Message();
         assistantMessage.setContent(aiAnswer);
         assistantMessage.setRole(MessageRole.ASSISTANT);
         assistantMessage.setConversation(conversation);
         Message saved = messageRepository.save(assistantMessage);
 
-        // 5. возвращаем именно ответ ассистента фронтенду
         return new MessageResponse(saved.getId(), saved.getContent(), saved.getRole());
     }
 
