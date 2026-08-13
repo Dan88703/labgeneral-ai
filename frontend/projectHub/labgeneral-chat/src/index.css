@@ -1,0 +1,214 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 25% 98%;
+    --foreground: 222 45% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 45% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 45% 11%;
+
+    --primary: 217 91% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 214 25% 94%;
+    --secondary-foreground: 222 40% 14%;
+
+    --muted: 214 25% 94%;
+    --muted-foreground: 215 16% 42%;
+
+    --accent: 214 30% 92%;
+    --accent-foreground: 222 40% 14%;
+
+    --destructive: 0 72% 46%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 20% 87%;
+    --input: 214 20% 84%;
+    --ring: 217 91% 55%;
+
+    --sidebar: 212 28% 97%;
+    --sidebar-foreground: 222 40% 14%;
+    --sidebar-border: 214 20% 87%;
+
+    --online: 152 60% 40%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222 47% 7%;
+    --foreground: 210 40% 96%;
+
+    --card: 222 41% 10.5%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 222 41% 10.5%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 222 33% 15%;
+    --secondary-foreground: 210 40% 94%;
+
+    --muted: 222 33% 14%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 222 33% 17%;
+    --accent-foreground: 210 40% 95%;
+
+    --destructive: 0 70% 58%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 217 30% 17%;
+    --input: 217 30% 20%;
+    --ring: 217 91% 60%;
+
+    --sidebar: 222 47% 6.5%;
+    --sidebar-foreground: 210 40% 94%;
+    --sidebar-border: 217 30% 15%;
+
+    --online: 152 55% 48%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    @apply bg-primary/25;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .thin-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .thin-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .thin-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-border;
+    border-radius: 999px;
+  }
+  .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/40;
+  }
+
+  .balance {
+    text-wrap: balance;
+  }
+}
+
+/* Markdown content rendered inside AI messages */
+@layer components {
+  .md-content {
+    @apply text-[0.95rem] leading-7 text-foreground;
+  }
+
+  .md-content > *:first-child {
+    margin-top: 0;
+  }
+  .md-content > *:last-child {
+    margin-bottom: 0;
+  }
+
+  .md-content p {
+    @apply my-3;
+  }
+
+  .md-content h1,
+  .md-content h2,
+  .md-content h3,
+  .md-content h4 {
+    @apply mb-2 mt-5 font-semibold tracking-tight text-foreground;
+  }
+  .md-content h1 {
+    @apply text-xl;
+  }
+  .md-content h2 {
+    @apply text-lg;
+  }
+  .md-content h3 {
+    @apply text-base;
+  }
+
+  .md-content ul {
+    @apply my-3 list-disc space-y-1.5 pl-5;
+  }
+  .md-content ol {
+    @apply my-3 list-decimal space-y-1.5 pl-5;
+  }
+  .md-content li::marker {
+    @apply text-muted-foreground;
+  }
+
+  .md-content a {
+    @apply text-primary underline underline-offset-2 hover:opacity-80;
+  }
+
+  .md-content blockquote {
+    @apply my-3 border-l-2 border-primary/40 pl-3 italic text-muted-foreground;
+  }
+
+  .md-content hr {
+    @apply my-5 border-border;
+  }
+
+  .md-content table {
+    @apply my-3 w-full border-collapse overflow-hidden rounded-md border border-border text-sm;
+  }
+  .md-content th,
+  .md-content td {
+    @apply border border-border px-3 py-1.5 text-left;
+  }
+  .md-content th {
+    @apply bg-muted font-medium;
+  }
+
+  .md-content code {
+    @apply rounded bg-muted px-1.5 py-0.5 font-mono text-[0.85em] text-foreground;
+  }
+
+  .md-content pre {
+    @apply my-3 overflow-x-auto rounded-lg border border-border bg-[hsl(222,47%,5%)] p-3.5 text-[0.85em] leading-6;
+  }
+  .dark .md-content pre {
+    @apply bg-black/40;
+  }
+
+  .md-content pre code {
+    @apply bg-transparent p-0 font-mono text-[0.9em] text-inherit;
+  }
+}
