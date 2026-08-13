@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/conversations")
-@CrossOrigin(origins = {"http://localhost:5173", "https://ваш-проект.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:5173", "https://labgeneral-ai.vercel.app"})
 public class ConversationController {
 
     private final ConversationService conversationService;
