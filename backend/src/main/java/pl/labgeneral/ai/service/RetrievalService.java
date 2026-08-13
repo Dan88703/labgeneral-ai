@@ -28,7 +28,7 @@ public class RetrievalService {
                     .bodyValue(request)
                     .retrieve()
                     .bodyToMono(RetrievedChunk[].class)
-                    .timeout(Duration.ofSeconds(10))
+                    .timeout(Duration.ofSeconds(30))
                     .block();
 
             System.out.println("=== RAG RESULT ===");
