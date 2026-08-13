@@ -23,7 +23,8 @@ public class RetrievalService {
                 .retrieve()
                 .bodyToMono(RetrievedChunk[].class)
                 .timeout(Duration.ofSeconds(10))
-                .onErrorReturn(new RetrievedChunk[0]) // jeśli serwis RAG nie działa - odpowiadamy bez kontekstu
+                .doOnNext(r -> System.out.println("RAG RESULT: " + Arrays.toString(r)))
+                .doOnError(e -> System.err.println("RAG ERROR: " + e.getMessage()))
                 .block();
 
         return response == null ? List.of() : Arrays.asList(response);
