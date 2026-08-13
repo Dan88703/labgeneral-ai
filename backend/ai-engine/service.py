@@ -1,8 +1,32 @@
+from fastapi import FastAPI
+from pydantic import BaseModel
+import chromadb
+from sentence_transformers import SentenceTransformer
 import time
+
+app = FastAPI(title="LABgeneral RAG Service")
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
+chroma_client = chromadb.PersistentClient(path="./chroma_db")
+COLLECTION_NAME = "labgeneral_docs"
+
+
+class SearchRequest(BaseModel):
+    query: str
+    top_k: int = 4
+
+
+class Chunk(BaseModel):
+    content: str
+    title: str
+    url: str
+    section: str
+
 
 @app.post("/retrieve", response_model=list[Chunk])
 def retrieve(request: SearchRequest):
     start = time.time()
+
     print("=== RETRIEVE START ===")
 
     collection = chroma_client.get_collection(name=COLLECTION_NAME)
@@ -32,3 +56,8 @@ def retrieve(request: SearchRequest):
     print(f"=== RETRIEVE END: {time.time() - start:.2f}s ===")
 
     return chunks
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
