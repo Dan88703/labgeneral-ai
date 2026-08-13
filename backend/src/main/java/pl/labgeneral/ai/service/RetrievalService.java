@@ -20,28 +20,33 @@ public class RetrievalService {
         System.out.println("Question: " + question);
         System.out.println("TopK: " + topK);
 
-        SearchRequest request = new SearchRequest(question, topK);
+        try {
+            SearchRequest request = new SearchRequest(question, topK);
 
-        RetrievedChunk[] response = ragWebClient.post()
-                .uri("/retrieve")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(RetrievedChunk[].class)
-                .timeout(Duration.ofSeconds(10))
-                .doOnNext(r -> {
-                    System.out.println("=== RAG RESULT ===");
-                    System.out.println("Chunks: " + r.length);
-                    System.out.println(Arrays.toString(r));
-                })
-                .doOnError(e -> {
-                    System.out.println("=== RAG ERROR ===");
-                    e.printStackTrace();
-                })
-                .block();
+            RetrievedChunk[] response = ragWebClient.post()
+                    .uri("/retrieve")
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(RetrievedChunk[].class)
+                    .timeout(Duration.ofSeconds(10))
+                    .block();
 
-        System.out.println("=== RAG END ===");
+            System.out.println("=== RAG RESULT ===");
+            System.out.println("Chunks: " + (response == null ? 0 : response.length));
 
-        return response == null ? List.of() : Arrays.asList(response);
+            return response == null
+                    ? List.of()
+                    : Arrays.asList(response);
+
+        } catch (Exception e) {
+
+            System.out.println("=== RAG ERROR ===");
+            System.out.println("Error class: " + e.getClass().getName());
+            System.out.println("Error message: " + e.getMessage());
+            e.printStackTrace();
+
+            throw e;
+        }
     }
 
     private record SearchRequest(String query, int topK) {}
