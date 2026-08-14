@@ -34,9 +34,12 @@ public class MessageService {
         userMessage.setConversation(conversation);
         messageRepository.save(userMessage);
 
-        List<Message> history = messageRepository.findByConversationIdOrderByIdAsc(conversationId);
+        // Ograniczamy historię wysyłaną do modelu, żeby nie zużywać zbyt wielu tokenów
+        List<Message> fullHistory = messageRepository.findByConversationIdOrderByIdAsc(conversationId);
+        List<Message> history = fullHistory.size() > 10
+                ? fullHistory.subList(fullHistory.size() - 10, fullHistory.size())
+                : fullHistory;
 
-        // NOWOŚĆ: pobieramy pasujące fragmenty wiedzy przed wywołaniem AI
         List<RetrievalService.RetrievedChunk> chunks =
                 retrievalService.retrieveRelevantChunks(request.content(), 4);
 
