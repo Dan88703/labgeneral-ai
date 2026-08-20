@@ -3,7 +3,6 @@ import { ArrowUp, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { CategoryChips } from "@/components/CategoryChips";
 import { useAutoResizeTextarea } from "@/hooks/useAutoResizeTextarea";
 import { SITE_HOSTNAME } from "@/lib/constants";
 
@@ -39,7 +38,6 @@ export function ChatInput({ onSend, isStreaming }: ChatInputProps) {
 
   return (
     <div className="shrink-0 border-t border-border bg-background px-3 pb-3 pt-2.5 sm:px-6 sm:pb-5">
-      <CategoryChips onSelect={onSend} />
 
       <div className="mx-auto flex w-full max-w-3xl items-end gap-2 rounded-2xl border border-input bg-card px-3 py-2 shadow-sm transition-colors focus-within:border-primary/50">
         <Textarea

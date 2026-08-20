@@ -8,15 +8,42 @@
   --color-yellow: #ebb812;
   --color-text: #ffffff;
 
+  --primary-gradient: linear-gradient(316deg, var(--color-purple), var(--color-pink));
+
   --background: 0 0% 100%;
   --foreground: 0 0% 10%;
 
-  --primary-gradient: linear-gradient(316deg, var(--color-purple), var(--color-pink));
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 10%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 10%;
+
+  --primary: 263 42% 46%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 0 0% 95%;
+  --secondary-foreground: 0 0% 10%;
 
   --muted: 0 0% 97%;
   --muted-foreground: 0 0% 45%;
 
+  --accent: 263 45% 96%;
+  --accent-foreground: 263 42% 32%;
+
+  --destructive: 0 70% 50%;
+  --destructive-foreground: 0 0% 100%;
+
   --border: 0 0% 91%;
+  --input: 0 0% 91%;
+  --ring: 263 42% 46%;
+
+  --sidebar: 0 0% 99%;
+  --sidebar-foreground: 0 0% 10%;
+  --sidebar-border: 0 0% 91%;
+
+  --online: 152 55% 42%;
+
   --radius: 10px;
 }
 
