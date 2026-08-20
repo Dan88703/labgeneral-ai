@@ -2,44 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 210 25% 98%;
-    --foreground: 222 45% 11%;
+:root {
+  --color-purple: #6944a6;
+  --color-pink: #c0459b;
+  --color-yellow: #ebb812;
+  --color-text: #ffffff;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 45% 11%;
+  --background: 0 0% 100%;
+  --foreground: 0 0% 10%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 45% 11%;
+  --primary-gradient: linear-gradient(316deg, var(--color-purple), var(--color-pink));
 
-    --primary: 217 91% 55%;
-    --primary-foreground: 0 0% 100%;
+  --muted: 0 0% 97%;
+  --muted-foreground: 0 0% 45%;
 
-    --secondary: 214 25% 94%;
-    --secondary-foreground: 222 40% 14%;
-
-    --muted: 214 25% 94%;
-    --muted-foreground: 215 16% 42%;
-
-    --accent: 214 30% 92%;
-    --accent-foreground: 222 40% 14%;
-
-    --destructive: 0 72% 46%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 214 20% 87%;
-    --input: 214 20% 84%;
-    --ring: 217 91% 55%;
-
-    --sidebar: 212 28% 97%;
-    --sidebar-foreground: 222 40% 14%;
-    --sidebar-border: 214 20% 87%;
-
-    --online: 152 60% 40%;
-
-    --radius: 0.75rem;
-  }
+  --border: 0 0% 91%;
+  --radius: 10px;
+}
 
   .dark {
     --background: 222 47% 7%;
@@ -100,7 +79,7 @@
   :focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
-}
+
 
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {

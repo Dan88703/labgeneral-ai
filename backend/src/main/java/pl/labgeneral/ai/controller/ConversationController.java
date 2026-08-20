@@ -18,14 +18,10 @@ public class ConversationController {
     }
 
     @GetMapping
-    public List<ConversationResponse> getAll() {
-        return conversationService.getAll()
+    public List<ConversationResponse> getAll(@RequestHeader("X-Session-Id") String sessionId) {
+        return conversationService.getBySession(sessionId)
                 .stream()
-                .map(conversation -> new ConversationResponse(
-                        conversation.getId(),
-                        conversation.getTitle(),
-                        conversation.getCreatedAt()
-                ))
+                .map(c -> new ConversationResponse(c.getId(), c.getTitle(), c.getCreatedAt()))
                 .toList();
     }
 
@@ -35,12 +31,12 @@ public class ConversationController {
     }
 
     @PostMapping
-    public Conversation create(@RequestParam String title) {
-        return conversationService.create(title);
+    public Conversation create(@RequestParam String title, @RequestHeader("X-Session-Id") String sessionId) {
+        return conversationService.create(title, sessionId);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        conversationService.delete(id);
+    public void delete(@PathVariable Long id, @RequestHeader("X-Session-Id") String sessionId) {
+        conversationService.deleteOwnedBy(id, sessionId);
     }
 }

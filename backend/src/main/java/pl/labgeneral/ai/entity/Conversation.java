@@ -1,11 +1,15 @@
 package pl.labgeneral.ai.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "conversations")
 public class Conversation {
@@ -16,6 +20,9 @@ public class Conversation {
 
     @Column(nullable = false)
     private String title;
+
+    @Column(name = "session_id", nullable = false)
+    private String sessionId;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -28,29 +35,5 @@ public class Conversation {
     private List<Message> messages = new ArrayList<>();
 
     public Conversation() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public List<Message> getMessages() {
-        return messages;
     }
 }
